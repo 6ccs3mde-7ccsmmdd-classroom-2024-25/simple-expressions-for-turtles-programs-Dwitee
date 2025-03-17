@@ -2,64 +2,73 @@ grammar uk.ac.kcl.inf.mdd2.Turtles with org.eclipse.xtext.common.Terminals
 
 generate turtles "http://www.ac.uk/kcl/inf/mdd2/Turtles"
 
-
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 TurtleProgram:
-	statements += Statement*
+    statements += Statement*
 ;
-	
+
 Statement:
-	MoveStatement |
-	TurnStatement |
-	LoopStatement |
-	VariableDeclaration
+    MoveStatement |
+    TurnStatement |
+    LoopStatement |
+    VariableDeclaration
 ;
 
 VariableDeclaration:
-	"var" name=ID "=" value=INT
+    "var" name=ID "=" value=IntExpression
 ;
 
 LoopStatement:
-	count = IntExpression "times" "do"
-	  statements += Statement+
-	"end"
+    count = IntExpression "times" "do"
+      statements += Statement+
+    "end"
 ;
 
 MoveStatement:
-	command = MoveCommand "(" steps = IntExpression ")"
+    command = MoveCommand "(" steps = IntExpression ")"
 ;
 
 enum MoveCommand:
-	forward | backward
+    forward | backward
 ;
 
 TurnStatement:
-	"turn" command = TurnCommand "by" degrees = REAL "degrees"
+    "turn" command = TurnCommand "by" degrees = REAL "degrees"
 ;
 
 enum TurnCommand:
-	left | right
+    left | right
 ;
 
-IntExpression:
-AdditionExpression
+IntExpression returns IntExpression:  
+    AdditionExpression
 ;
 
-AdditionExpression:
-MultiplicationExpression ("+" MultiplicationExpression)*
+AdditionExpression returns IntExpression:
+    MultiplicationExpression ({AdditionExpression.left=current} "+" right=MultiplicationExpression)*
 ;
 
-MultiplicationExpression:
-PrimaryExpression ("" PrimaryExpression)
+MultiplicationExpression returns IntExpression:
+    PrimaryExpression ({MultiplicationExpression.left=current} "*" right=PrimaryExpression)*
 ;
 
-PrimaryExpression:
-val = INT |
-var = [VariableDeclaration] |
-"(" IntExpression ")"
+PrimaryExpression returns IntExpression:
+    NumberLiteral | VariableReference | ParenthesizedExpression
+;
+
+NumberLiteral returns IntExpression:
+    val=INT
+;
+
+VariableReference returns IntExpression:
+    var=[VariableDeclaration]
+;
+
+ParenthesizedExpression returns IntExpression:
+    "(" IntExpression ")"
 ;
 
 REAL returns ecore::EFloat hidden():
-	INT? "." INT
-; 
+    INT? "." INT
+;
