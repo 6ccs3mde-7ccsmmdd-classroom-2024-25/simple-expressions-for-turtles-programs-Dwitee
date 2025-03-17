@@ -43,8 +43,21 @@ enum TurnCommand:
 ;
 
 IntExpression:
-	val = INT |
-	var = [VariableDeclaration]
+AdditionExpression
+;
+
+AdditionExpression:
+MultiplicationExpression ("+" MultiplicationExpression)*
+;
+
+MultiplicationExpression:
+PrimaryExpression ("" PrimaryExpression)
+;
+
+PrimaryExpression:
+val = INT |
+var = [VariableDeclaration] |
+"(" IntExpression ")"
 ;
 
 REAL returns ecore::EFloat hidden():
